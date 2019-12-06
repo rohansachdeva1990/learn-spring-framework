@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- Add support for component scanning for controllers, recursive -->
+	<context:component-scan base-package="com.rohan.springdemo" />
+
+	<!-- Add support for conversion, formatting and validation support -->
+	<mvc:annotation-driven/>
+
+	<!-- Define Spring MVC view resolver -->
+	<bean
+			class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- Step 1: Define Database DataSource / connection pool
+
+    How to connect to our database
+    -->
+	<bean id="myDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		  destroy-method="close">
+		<property name="driverClass" value="com.mysql.cj.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/web_customer_tracker?useSSL=false" />
+		<property name="user" value="springstudent" />
+		<property name="password" value="springstudent" />
+
+		<!-- these are connection pool properties for C3P0 -->
+		<property name="minPoolSize" value="5" />
+		<property name="maxPoolSize" value="20" />
+		<property name="maxIdleTime" value="30000" />
+	</bean>
+
+	<!-- Step 2: Setup Hibernate session factory
+        For hibernate to use, some hibernate properties
+
+        The session factory impl for hibernate is provided by the spring, which will be resolved
+        during class path.
+
+        basically it will create the session factory for us which will be singleton in nature and we can get the
+        session from it directly.
+
+        But we have provided, a transaction manager for us, which will take the responsibility to take care
+        session.beginTransaction() and session.getTransaction().commit();
+
+        Also remember that the bean id name is analogous to the member variable
+    -->
+	<bean id="sessionFactory"
+		  class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource" />
+		<!-- We can add comma separated packages, if we want to scan more
+		It will scan this package and look for classes annotated with @Entity
+		-->
+		<property name="packagesToScan" value="com.rohan.springdemo.entity" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Step 3: Setup Hibernate transaction manager
+        This is used to eliminate the duplicate transaction code in our DAO classes.
+        It will check this package recursively
+    -->
+	<bean id="myTransactionManager"
+		  class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"/>
+	</bean>
+
+	<!-- Step 4: Enable configuration of transactional behavior based on annotations, @Transactional
+    which is provided by spring to minimize the code to manually starting and stopping the transactions.
+    -->
+	<tx:annotation-driven transaction-manager="myTransactionManager" />
+
+	<!-- Add support for reading web resources: css, images, js, etc ...
+	 We can add multiple resources
+
+	 Important!- For all the location resources, we need to have ending SLASH!! I
+	 wasted my bloddy 3 hrs!!!!!!!!!!!!
+	 -->
+	<mvc:resources location="/resources/" mapping="/resources/**"></mvc:resources>
+
+</beans>
