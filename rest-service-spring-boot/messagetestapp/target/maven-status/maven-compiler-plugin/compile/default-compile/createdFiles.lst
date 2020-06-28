@@ -1,7 +1,0 @@
-org\rohan\restfulservice\messagetestapp\service\MessageService.class
-org\rohan\restfulservice\messagetestapp\model\impl\Message.class
-org\rohan\restfulservice\messagetestapp\api\MessageController.class
-org\rohan\restfulservice\messagetestapp\service\impl\MessageServiceImpl.class
-org\rohan\restfulservice\messagetestapp\service\ServiceItf.class
-org\rohan\restfulservice\messagetestapp\App.class
-org\rohan\restfulservice\messagetestapp\model\ModelItf.class
